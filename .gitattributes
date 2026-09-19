@@ -1,0 +1,5 @@
+.prettierrc export-ignore
+.prettierignore export-ignore
+.editorconfig export-ignore
+GUIDELINES.md export-ignore
+skills/** export-ignore

@@ -1,0 +1,15 @@
+version: 1.0
+configuration:
+  has_webserver: true
+  readonly_paths:
+    - backend/src/scripts/**
+    - backend/src/shared/config/database.js
+    - backend/src/shared/config/index.js
+    - frontend/vite.config.js
+  ide_config:
+    default_open_files:
+      - backend/src/app.js
+      - frontend/src/App.jsx
+    project_menu:
+      run: bun start
+      install: bun install && bash setup.sh --seed

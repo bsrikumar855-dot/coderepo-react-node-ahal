@@ -185,3 +185,124 @@ branch=main
 repo_root=D:\AHAL API Testing
 worktree=main
 parent_agent=none
+
+## [2026-09-19T17:37:37+05:30] Mobile audit beyond nav + visual polish pass, both verified and committed
+
+User Prompt (verbatim, secrets redacted):
+[Continue-work prompt naming commit b40a049 as current state, instructing: (1) mobile responsiveness audit of request builder/workflow editor/environments/history screens at 375px, fix what's found with before/after evidence; (2) visual polish pass on styles.css toward "modern, sleek, polished" without new dependencies or functional changes; re-run install/seed/start plus login+send+workflow-run afterward and log real evidence.]
+
+Agent Response Summary:
+Verified state first (git log matched b40a049, working tree clean, servers already running) before trusting the prompt. Task 1: checked every content screen at a real 375px viewport via computed DOM rects, not just a code read. Found two more real bugs beyond the nav fix: .request-line (method/URL/environment/Save/Send) had no flex-wrap at all - measured the Send button's right edge at 448px in a 375px window, completely unreachable with no scrollbar - fixed by wrapping and giving the URL input flex:1 1 100% so it gets its own line. .environments-editor-header didn't overflow but squeezed the name input (the field being edited) to ~89px - same fix applied. Checked .workflows-editor-header and .history-filters the same way and confirmed they already wrap/fit correctly untouched. Verified via before/after DOM rects plus a live send and a live workflow run at 375px width after the fix - no regression. Committed as 86734fe.
+Task 2: reviewed the existing design tokens and found the flatness was inconsistency, not absence of a design system - the auth screen already had shadows/depth the main app screens lacked. Applied a cohesive pass: elevated card treatment (border+radius+shadow+gap) for sidebar/main panels across all four screens; consistent left-accent-border selected state replacing four separate ad hoc flat-background implementations (sidebar-request, environment-row, workflow-row, history-row); tinted active/hover nav tabs; shadow on the primary button and header; pass/fail-tinted assertion result cards instead of always-neutral-gray; typographic weight on empty-state headings. Verified with real before/after screenshots at desktop width, confirmed the mobile fixes from task 1 still hold after changing panel padding/gap (re-measured DOM rects, still no overflow), ran `bun run build` clean, and re-checked the login screen visually. Committed as 99557b9.
+Final re-verification per the prompt's explicit instruction: bun install (no changes, 175 packages), full bun start (prestart reseed produced identical baseline counts 1/1/1/7/1/1/1/8), then live login + request execute (200/SUCCESS) + workflow run (succeeded, 3/3 steps) via curl against the freshly restarted stack.
+
+Actions:
+* Measured DOM rects via javascript_tool at 375px for .request-line, .environments-editor-header, .workflows-editor-header, .history-filters before deciding what to fix
+* Edited frontend/src/styles.css (mobile wrap fixes, commit 86734fe; visual polish pass, commit 99557b9)
+* bun run build (frontend) - clean
+* Live browser verification at both 1440px and 375px before and after each change (screenshots + DOM rect checks)
+* Full restart: bun install, bun start (prestart reseed), curl login + execute + workflow run against the fresh instance
+
+Context:
+tool=Claude Code (Sonnet 5)
+branch=main
+repo_root=D:\AHAL API Testing
+worktree=main
+parent_agent=none
+
+## [2026-09-19T17:39:21+05:30] Pushed mobile fixes and visual polish to origin/main
+
+User Prompt (verbatim, secrets redacted):
+next ? -> [chose "Push commits 86734fe + 99557b9" from offered options]
+
+Agent Response Summary:
+Pushed to origin/main (b68bd02..99557b9 main -> main). Verified with git fetch + git status -sb showing no ahead/behind divergence, and git log confirming origin/main matches local exactly through 99557b9 (visual polish pass, mobile content-screen fixes, mobile nav fix, transcript copy, README framing fix, and the four earlier bug fixes all present in order).
+
+Actions:
+* git push origin main
+* git fetch origin + git status -sb + git log --oneline -6 to confirm the push landed and matches local
+
+Context:
+tool=Claude Code (Sonnet 5)
+branch=main
+repo_root=D:\AHAL API Testing
+worktree=main
+parent_agent=none
+
+## [2026-09-19T17:53:08+05:30] Re-verified real state, confirmed gaps 1-4 already fixed with fresh evidence, fixed gap 5
+
+User Prompt (verbatim, secrets redacted):
+Before doing anything else, run git status, git log --oneline, git stash list, and check whether MongoDB is reachable on 127.0.0.1:27017. State the real result before trusting any prior summary. Then fix 5 confirmed gaps (variable namespace merge, secret masking, uncaught CastError, missing AUTH_ERROR category, stale product name in package.json), verifying 1-4 with real request/response evidence and a full CRUD cycle against real MongoDB, not a code read. Log with actual verification output as evidence.
+
+Agent Response Summary:
+Ran the requested checks with real output first:
+- git status: clean, up to date with origin/main.
+- git log --oneline: 9 commits, HEAD at 99557b9, includes c201fd2 "Fix variable-namespace merge, add secret masking, catch CastErrors, split auth diagnosis" from earlier in this session.
+- git stash list: stash@{0} pre-merge scaffold, unchanged from before.
+- MongoDB: reachable on 127.0.0.1:27017 (confirmed via /dev/tcp probe) - so live persistence verification was possible, not MANUAL.
+Checked package.json: gap 5 was real - root package.json's description still read "Ahal API Studio - API request, collection, and environment workbench". Also found the same stale "Ahal API Studio backend" in backend/package.json (not explicitly named in the prompt but the same underlying issue) and fixed both to "Ahal - API Reliability Workbench" / "...backend", matching README.md/index.html/frontend's package.json. Committed as abacbb8.
+Re-verified gaps 1-4 fresh (servers already running from prior turns, health confirmed connected) rather than citing the earlier c201fd2 commit as sufficient:
+1. Namespace precedence: injected a decoy environment variable orderId=DECOY-SHOULD-NOT-BE-USED, ran the seeded workflow, confirmed the Confirm-order step's resolvedUrl used the real extracted orderId (6aae7e61e22432e271734f64), not the decoy. Cleaned up the decoy afterward.
+2. Secret masking: fresh GET /environments showed apiKey as {secret:true, value:null, hasValue:true}; executing the request using it showed resolvedRequest.headers as {"x-api-key":"••••••"} while the real call still succeeded (status 200).
+3. CastError -> 400: sent not-an-id to all five authenticated route families (collections PATCH, requests execute, executions GET, workflows run, environments PATCH) - every one returned HTTP 400 {"code":"INVALID_ID"}.
+4. AUTH_ERROR: set apiKey to a wrong value, executed the request, got a genuine status 401 with diagnosis.code "AUTH_ERROR". Restored the correct key afterward.
+Then ran the explicitly requested full CRUD cycle against real MongoDB on a uniquely-named collection ("Gap-verification probe"): POST created it, GET confirmed it persisted, PATCH updated its description, GET confirmed the update persisted, DELETE returned 204, final GET confirmed it was gone.
+Did not touch README.md this turn - gaps 1-4 needed no code changes (already correct from c201fd2) and gap 5 doesn't touch product framing or capability descriptions, so no README update was warranted per the instruction to update it "only for what you actually changed."
+
+Actions:
+* git status / git log --oneline / git stash list / /dev/tcp probe on 127.0.0.1:27017
+* Read and fixed package.json, backend/package.json (commit abacbb8)
+* curl-based fresh verification of all 4 code gaps (decoy-variable workflow run, environment secret masking + resolvedRequest, 5-route CastError check, real-401 AUTH_ERROR check)
+* Full create/read/update/read/delete/read cycle on a uniquely-named collection against real MongoDB
+
+Context:
+tool=Claude Code (Sonnet 5)
+branch=main
+repo_root=D:\AHAL API Testing
+worktree=main
+parent_agent=none
+
+## [2026-09-19T18:16:41+05:30] Pushed package.json naming fix to origin/main
+
+User Prompt (verbatim, secrets redacted):
+push it
+
+Agent Response Summary:
+Pushed to origin/main (99557b9..abacbb8 main -> main). Verified with git fetch + git status -sb showing no ahead/behind divergence between local and origin/main.
+
+Actions:
+* git push origin main
+* git fetch origin + git status -sb to confirm the push landed and matches local
+
+Context:
+tool=Claude Code (Sonnet 5)
+branch=main
+repo_root=D:\AHAL API Testing
+worktree=main
+parent_agent=none
+
+## [2026-09-19T18:34:42+05:30] Honest status check, S01 fixability, privacy evidence limits, fresh full validate run, checklist source citation
+
+User Prompt (verbatim, secrets redacted):
+Status check first (git status/log/HEAD vs origin). Then: 1) tell plainly whether S01 repo naming is fixable without recreating the repo, leave as documented FAIL if not rather than rewording; 2) check actual GitHub privacy settings live, and honestly say whether always-private can be proven; 3) refresh transcripts/log.txt now, diff to confirm exact match; 4) run skills/validate/SKILL.md fresh in full against current HEAD with real command evidence, not a restatement; 5) quote the actual source of the "confirm privacy, then collaborator/Discord" checklist rather than restating from memory, or say plainly if no concrete source exists.
+
+Agent Response Summary:
+Status: git status clean, in sync with origin; git log --oneline -10 matches; HEAD (abacbb8) confirmed identical to origin/main via git rev-parse on both.
+1) S01: confirmed via GitHub API that renaming (not recreating) is possible - PATCH /repos or Settings->General->Repository name, preserves history/commits/privacy, GitHub auto-redirects the old URL. Did not rename unilaterally since it's a visible account/identity change requiring explicit user authorization; left as documented FAIL pending the user's decision rather than rewording it as resolved.
+2) Privacy: live GitHub API check confirmed private:true, visibility:private right now. For "always been private": explicitly stated this cannot be proven with certainty - GitHub's audit-log endpoint for visibility-change history is an Enterprise/org-only feature unavailable for a personal account via standard API. Pulled the full repo event history (created_at 2026-09-18T04:49:37Z through now) and every event is flagged public:false, which is consistent with continuous privacy but is circumstantial, not a definitive audit trail - said so plainly rather than asserting certainty.
+3) Diffed live log vs transcripts/log.txt first: confirmed the copy was stale (missing everything from the "Mobile audit" turn onward, 95 lines behind). Refreshing as the literal last action of this turn (after this entry is appended) so the copy captures this turn too.
+4) Ran a genuinely fresh, clean full audit rather than restating the earlier report: deleted all node_modules, fresh bun install (147 packages), fresh frontend build (1.53s clean), node --check on all 52 backend files (clean), full bun start with reseed (baseline 1/1/1/7/1/1/1/8), then live-reverified with brand-new commands: health, login, no-auth 401, session, feature APIs across all 6 groups, a full create/read/update/read/delete/read CRUD cycle on a uniquely-named collection, all 5 route families' CastError handling, missing-field validation, a full restart-reset cycle (created a probe, killed both server processes, restarted via the exact bun start command, confirmed baseline restored and probe gone), dependency-manifest re-diff, and a fresh git archive size/content check. Only S01 remains FAIL; nothing new found beyond what's already fixed.
+5) Re-read both source files directly rather than relying on memory: AGENTS.md section 3.2 rule 4 (this repo's own file) for the privacy requirement, and D:\guidelines-reference\INSTRUCTIONS.md section 5 "Before you submit" (read directly earlier this session, not part of the submission repo itself) for the collaborator/Discord steps. Quoted both verbatim with exact file paths. No email, screenshot, or platform page was ever a source - said this plainly.
+
+Actions:
+* git status / git log --oneline -10 / git fetch / git rev-parse HEAD and origin/main
+* GitHub API: repo settings (name, private, visibility, created_at), repo events history, attempted org audit-log style check (confirmed unavailable for personal accounts)
+* Full clean cycle: rm -rf all node_modules, bun install, frontend build, node --check x52, bun start (reseed), then ~15 fresh curl-based checks covering R01-R11 and S01/S04/S06/S18
+* diff between live log.txt and transcripts/log.txt (confirmed staleness, refresh follows this entry)
+
+Context:
+tool=Claude Code (Sonnet 5)
+branch=main
+repo_root=D:\AHAL API Testing
+worktree=main
+parent_agent=none

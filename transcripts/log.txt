@@ -306,3 +306,34 @@ branch=main
 repo_root=D:\AHAL API Testing
 worktree=main
 parent_agent=none
+
+## [2026-09-19T21:09:25+05:30] Final code-quality and polish pass against GUIDELINES section 5
+
+User Prompt (verbatim, secrets redacted):
+Final code-quality and polish pass before submission. Do NOT touch anything already resolved and verified unless this pass finds an actual bug - if so, say what and why before touching. No dependency changes, no repo rename, no push without asking. Work through 14 checks against GUIDELINES.md section 5 (unused imports/exports, dead code, Prettier, American English, naming consistency; body validation, ownership enforcement proven with a second account, uncaught-500 paths, stack-trace leakage, controller thinness; keyboard reachability, responsive at 375px/desktop, loading/empty/error states triggered live, theme consistency). Show actual command/diff/request evidence for every fix; say explicitly when a check finds nothing. Then re-run validate, refresh transcripts, and give a before/after summary distinguishing "broken and fixed" from "checked and clean".
+
+Agent Response Summary:
+Worked all 14 checks with live evidence. FOUND AND FIXED (6 real issues, 3 commits):
+1. Malformed/oversized request bodies returned HTTP 500 (commit b4d4966). Proven before: POST /collections with '{"name": "unclosed' -> 500, and body 'null' -> 500. express.json() throws a SyntaxError carrying its own status 400 and expose:true, but no branch handled it. Added one centralized branch beside the existing ZodError/CastError handling. After: malformed -> 400 MALFORMED_BODY, null -> 400 MALFORMED_BODY, >200kb -> 413 PAYLOAD_TOO_LARGE, valid body -> 201 unchanged. Full 11-case bad-input battery re-run afterward: zero 500s remain.
+2. Request-body arrays were unbounded (commit 775e71d). Proven before: PATCH /environments with 2000 variables -> HTTP 200, all 2000 persisted. workflow.steps was most serious since each step fires an outbound HTTP call. Added bounds (environments 200, params/headers 100, steps 50, extract 25, assertions 50, tags 25). After: same payload -> 400 VALIDATION_ERROR "Too big: expected array to have <=200 items"; normal 3-variable payload still 200.
+3. execution-sanitizer.js used spaces while the whole repo uses tabs (commit 6d070be). Converted; `git diff --ignore-all-space` on the file is empty, proving whitespace-only.
+4. mock-target order enum used British "cancelled" -> "canceled"; verified only "pending"/"confirmed" are ever written or read, so nothing depended on it.
+5. .method-get hardcoded hex while its three siblings used design tokens; added --color-info/--color-info-bg so all four match.
+6. Root package.json "workspaces" was inline where the reference expands it.
+CHECKED AND CLEAN (no change needed): unused imports (0 across both trees); orphaned files (0); dead code/commented-out blocks/TODO/debugger (0 - all console.* are permitted lifecycle/setup logs or server-side error logging); naming conventions consistent across all 6 features; every body-taking route already zod-validated with sensible scalar limits; ownership enforcement (registered a second account and attempted 16 operations against account A's collection/request/environment/execution/workflow ids - every mutating/reading-by-id route returned 404, and the three 200s returned {"data":[]}, i.e. ownership-scoped empty results leaking nothing, confirmed by repository-layer filters all starting from {ownerId}); no error response leaks a stack, path, or node_modules reference, and the 500 branch emits a fixed string rather than error.message; controllers are thin (none touch a Model, none contain request-time domain logic); keyboard reachability (0 unreachable of 32/42/26/22 interactive elements across the four panels, and the hover-revealed action icons provably go opacity 0->1 on keyboard focus); responsive (0 overflowing elements and no page scroll at both 375px and 1440px on all four panels); loading/empty/error states all triggered live (error via forced fetch failure showing role="alert"; loading showing "Sending..." with the button disabled and role="status"; all four empty states verified on a genuinely zero-data account).
+DELIBERATELY NOT CHANGED, with reasons stated: Prettier not applied - the reference repo fails its own .prettierrc on 77 files, so blanket --write would reformat ~33 files away from the reference conventions INSTRUCTIONS.md section 4 requires preserving, and would rewrite readonly_paths files and AGENTS.md; verified internal consistency instead. getRequiredEnv/getOptionalEnv are unused exports but are byte-identical to the reference and live in a declared readonly_path. workflow.repository.updateRun lacks an ownerId scope but has exactly one call site passing a run the service just created, so it is unreachable with hostile input. maskEnvironment stays in the controller because it only shapes responses, whereas the execution sanitizer must run before persistence - a principled layer split, not drift. No dark/light theme exists in this app while the reference has one; a single theme is applied consistently so nothing is inconsistent, but the divergence from the reference is reported rather than silently passed or rebuilt this late.
+Final validate re-run against HEAD 6d070be after a clean reseed: baseline counts 1/1/1/7/1/1/1/8, health connected, all feature API groups 200, secret masking still returning x-api-key "••••••", malformed body 400, malformed id 400, request send SUCCESS, workflow run succeeded 3/3, frontend production build clean. Test account created during ownership probing confirmed wiped by the reseed (login now 401).
+
+Actions:
+* Static scans: unused imports/exports, orphaned files, console/debugger/TODO, non-American spellings, naming conventions, hardcoded colors
+* bunx prettier --check on both this repo and the reference (dependency manifests verified unchanged afterward)
+* Live probes: 16-operation cross-account ownership matrix, 11-case malformed-input battery, error-body leakage scan
+* Browser: keyboard-reachability audit across 4 panels, focus-visibility proof for hover-revealed controls, 375px/1440px overflow audit, live loading/empty/error state triggering on a zero-data account
+* Commits b4d4966, 775e71d, 6d070be; full clean reseed + start + feature re-verification + production build
+
+Context:
+tool=Claude Code (Opus 5)
+branch=main
+repo_root=D:\AHAL API Testing
+worktree=main
+parent_agent=none

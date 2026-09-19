@@ -925,8 +925,19 @@ textarea:focus {
 		gap: 10px;
 	}
 	.app-tabs {
+		/* .app-tabs has `flex: 1` (flex-basis: 0%) from the base rule above, which
+		 * takes precedence over `width` for sizing along a flex row's main axis - a
+		 * plain `width: 100%` here was silently ignored, leaving the tab bar squeezed
+		 * into whatever space was left over after the brand and sign-out area, with no
+		 * scroll affordance visible. Overriding the flex shorthand itself (not just
+		 * width) is what actually forces it onto its own full-width line. */
 		order: 3;
-		width: 100%;
+		flex: 0 0 100%;
 		overflow-x: auto;
+	}
+	.app-tabs button {
+		padding: 8px 10px;
+		font-size: 14px;
+		white-space: nowrap;
 	}
 }

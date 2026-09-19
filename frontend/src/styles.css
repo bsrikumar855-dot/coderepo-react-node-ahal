@@ -478,7 +478,21 @@ textarea:focus {
 }
 .url-input {
 	flex: 1;
+	min-width: 0;
 	font-family: "Roboto Mono", monospace;
+}
+/*
+ * A bare <select> picks up the generic `select { width: 100% }` rule (see the
+ * shared form-control block above), which resolves to a 100% flex-basis inside a
+ * flex row. Next to a `flex: 1` field (the URL input, the workflow name input),
+ * that let the select claim most of the row and squeezed the actual input field
+ * down to a few pixels. Environment selects get a fixed, sane width instead.
+ */
+.env-select {
+	flex: 0 0 auto;
+	width: auto;
+	min-width: 150px;
+	max-width: 220px;
 }
 .request-name-input {
 	margin-bottom: 14px;

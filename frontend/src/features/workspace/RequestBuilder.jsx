@@ -80,7 +80,7 @@ export function RequestBuilder({ request, environments, activeEnvironmentId, onE
 					))}
 				</select>
 				<input className="url-input" value={form.url} onChange={(event) => patchForm({ url: event.target.value })} placeholder="{{baseUrl}}/path" />
-				<select value={activeEnvironmentId || ""} onChange={(event) => onEnvironmentChange(event.target.value || null)} title="Environment used when sending">
+				<select className="env-select" value={activeEnvironmentId || ""} onChange={(event) => onEnvironmentChange(event.target.value || null)} title="Environment used when sending">
 					<option value="">No environment</option>
 					{environments.map((environment) => (
 						<option key={environment._id} value={environment._id}>

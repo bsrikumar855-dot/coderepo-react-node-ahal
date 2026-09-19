@@ -123,7 +123,7 @@ export function WorkflowsPanel({ environments, activeEnvironmentId, onEnvironmen
 					<>
 						<div className="workflows-editor-header">
 							<input value={form.name} onChange={(event) => { setForm({ ...form, name: event.target.value }); setDirty(true); }} />
-							<select value={activeEnvironmentId || ""} onChange={(event) => onEnvironmentChange(event.target.value || null)}>
+							<select className="env-select" value={activeEnvironmentId || ""} onChange={(event) => onEnvironmentChange(event.target.value || null)}>
 								<option value="">No environment</option>
 								{environments.map((environment) => (
 									<option key={environment._id} value={environment._id}>

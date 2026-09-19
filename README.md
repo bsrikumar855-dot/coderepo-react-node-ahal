@@ -1,13 +1,20 @@
 # Ahal - API Reliability Workbench
 
-Ahal is a Postman-style workbench for building HTTP requests, chaining them into
-multi-step workflows, and diagnosing why a call failed - not just that it did.
-Anyone integrating with an API needs three things a browser and curl don't give
-them: a place to save and organize requests, a way to test a multi-call sequence
-end to end (create a record, then act on it), and a clear answer to "why did this
-break" when a call comes back wrong. Ahal covers all three in one authenticated
-workspace, backed by MongoDB, with every execution recorded so failures can be
-compared and traced instead of re-run blind.
+Sending one HTTP request is a solved problem. The hard part is a *sequence* of
+them: authenticate, carry the token into the next call, pull an id out of one
+response and feed it into a later one, check each response along the way - and,
+when it breaks, work out which step broke and why. Developers usually do that by
+hand, copying values between calls and re-running blind, with no way to tell
+whether the failure was the network, auth, a bad variable, a failed check, a
+timeout, or the target API itself.
+
+Ahal is a workbench for exactly that problem. It treats request-to-request data
+flow as the primary object: workflows run their steps strictly in order,
+extracting variables from one response for the next to use, validating each step
+against its own assertions, and recording every execution so a failure can be
+traced to an exact step with an exact cause - and compared side by side against
+any earlier run. Saved requests and environments are the building blocks
+underneath; the reliability and diagnosis of the whole chain is the point.
 
 ## Core capabilities
 

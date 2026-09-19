@@ -3,7 +3,7 @@
     "version": "1.0.0",
     "private": true,
     "type": "module",
-    "description": "Ahal API Studio backend",
+    "description": "Ahal API Reliability Workbench backend",
     "main": "src/index.js",
     "scripts": {
         "start": "bun src/index.js",

@@ -2,7 +2,7 @@
 	"name": "ahal",
 	"version": "1.0.0",
 	"private": true,
-	"description": "Ahal API Studio - API request, collection, and environment workbench",
+	"description": "Ahal - API Reliability Workbench",
 	"workspaces": ["frontend", "backend"],
 	"scripts": {
 		"prestart": "bash setup.sh --start",

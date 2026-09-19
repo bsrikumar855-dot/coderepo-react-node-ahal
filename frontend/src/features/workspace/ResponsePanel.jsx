@@ -37,13 +37,30 @@ export function ResponsePanel({ execution, loading }) {
 				<DiagnosisPill code={execution.diagnosis.code} />
 			</div>
 			<div className="tab-strip" role="tablist">
-				{["body", "headers", "assertions", "diagnosis"].map((name) => (
+				{["body", "headers", "request", "assertions", "diagnosis"].map((name) => (
 					<button key={name} className={tab === name ? "active" : ""} onClick={() => setTab(name)} role="tab" aria-selected={tab === name}>
 						{name === "assertions" ? `Assertions${execution.assertionResults.length ? ` (${execution.assertionResults.filter((a) => a.passed).length}/${execution.assertionResults.length})` : ""}` : name[0].toUpperCase() + name.slice(1)}
 					</button>
 				))}
 			</div>
 			{tab === "body" && <pre className="response-body">{execution.responseBody ? prettyBody(execution.responseBody) : execution.errorMessage || "(empty body)"}</pre>}
+			{tab === "request" && execution.resolvedRequest && (
+				<div className="resolved-request">
+					<p className="muted">The request actually sent, after resolving every {"{{variable}}"}. Secret-flagged environment variables are masked here too.</p>
+					<pre className="response-body">{execution.resolvedRequest.method} {execution.resolvedRequest.url}</pre>
+					<table className="kv-table">
+						<tbody>
+							{Object.entries(execution.resolvedRequest.headers || {}).map(([key, value]) => (
+								<tr key={key}>
+									<td>{key}</td>
+									<td>{value}</td>
+								</tr>
+							))}
+						</tbody>
+					</table>
+					{execution.resolvedRequest.body && <pre className="response-body">{prettyBody(execution.resolvedRequest.body)}</pre>}
+				</div>
+			)}
 			{tab === "headers" && (
 				<table className="kv-table">
 					<tbody>

@@ -1,5 +1,6 @@
 import { AppError } from "../../shared/errors/app-error.js";
 import { getConfig } from "../../shared/config/index.js";
+import { extractSecretValues } from "../../shared/utils/variables.js";
 import { requestRepository } from "./request.repository.js";
 import { collectionRepository } from "../collections/collection.repository.js";
 import { environmentService } from "../environments/environment.service.js";
@@ -50,19 +51,26 @@ export const requestService = {
 	 * assertions attached to it, records the outcome in execution history, and returns
 	 * the full result. This is the single path both the request builder and workflow
 	 * runner use, so history and diagnosis stay consistent everywhere a request runs.
+	 * A standalone "Send" has no run-scope (workflow) variables of its own.
 	 */
 	async execute(id, ownerId, { environmentId, assertions } = {}) {
 		const definition = await this.get(id, ownerId);
 		const config = getConfig();
-		const variables = await environmentService.resolveVariablesFor(ownerId, environmentId);
-		const result = await executeRequestDefinition(definition.toObject(), variables, config.requestExecutionTimeoutMs);
+		const resolvedEnvironment = await environmentService.resolveVariablesFor(ownerId, environmentId);
+		const secretValues = extractSecretValues(resolvedEnvironment.variables);
+		const result = await executeRequestDefinition(
+			definition.toObject(),
+			{ environmentVariables: resolvedEnvironment.variables, workflowVariables: {} },
+			config.requestExecutionTimeoutMs,
+		);
 		return executionService.recordExecution(ownerId, {
 			source: "request",
 			requestId: definition._id,
 			requestSnapshot: { name: definition.name, method: definition.method, url: definition.url },
-			environmentId: environmentId || null,
+			environmentId: resolvedEnvironment.environmentId,
 			result,
 			assertions: assertions ?? [],
+			secretValues,
 		});
 	},
 };

@@ -14,10 +14,14 @@ compared and traced instead of re-run blind.
 - **Collections, folders, and requests** - organize saved HTTP requests (method,
   URL, params, headers, body, auth) into folders within a collection.
 - **Environments** - named sets of `{{variables}}` (base URLs, tokens, keys), one
-  active at a time, resolved into any request field at send time.
+  active at a time, resolved into any request field at send time. A variable can be
+  flagged **secret**: its value is masked (`value: null`) in every environment
+  response and redacted (`••••••`) everywhere an execution record shows a resolved
+  request that used it, in both the API and the UI.
 - **Request execution** - sends a saved request through the active environment,
   substituting variables, applying auth (bearer/basic/API key), and recording a
-  full execution record (status, headers, body, timing, size).
+  full execution record (status, headers, body, timing, size, and the fully
+  resolved outbound request - method, URL, headers, body - for inspection).
 - **Assertions** - per-request checks (status code, response time, a header, or a
   JSON body path) evaluated with type-aware comparators, so `"200"` and `200`
   are never silently treated as equal.
@@ -144,10 +148,22 @@ request seeded to demonstrate a failed call and its diagnosis.
   before comparing, rather than relying on JavaScript's `==`, so a status check
   against `"200"` behaves the same as one against `200`.
 - **Workflows run strictly sequentially.** Each step is `await`-ed to completion,
-  including persisting its execution record, before the next step starts, and a
-  step's extracted variables always take precedence over same-named environment
-  variables. Running steps concurrently would let a later step read a variable
-  before an earlier step produced it.
+  including persisting its execution record, before the next step starts. Running
+  steps concurrently would let a later step read a variable before an earlier step
+  produced it.
+- **Two variable namespaces, never merged.** Workflow (run-scope) variables and
+  environment variables are resolved from two separate maps
+  (`backend/src/shared/utils/variables.js`), not flattened into one object, because
+  they have different lifetimes - an environment variable outlives many runs, a
+  workflow variable exists only for the run that extracted it. Precedence is
+  explicit: a run-scope value always wins over a same-named environment variable,
+  because it's more specific to what's happening right now.
+- **Secret values are redacted at exactly one seam.** Assertions and diagnosis run
+  against the real response first (they need the truth); only afterward does
+  `execution-sanitizer.js` redact any secret-flagged environment variable's value
+  from what gets persisted to execution history or returned to the client. Masking
+  happens in this one place rather than scattered across every consumer of a "raw"
+  execution result.
 - **In-memory rate limiting.** Request/workflow execution endpoints are rate
   limited per account (`backend/src/shared/middleware/rate-limit.js`). This repo's
   approved dependencies don't include Redis, so the limiter is process-local; a

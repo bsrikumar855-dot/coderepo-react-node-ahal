@@ -411,11 +411,15 @@ textarea:focus {
 	white-space: nowrap;
 }
 .sidebar-collection-actions {
-	display: none;
-	gap: 2px;
-}
-.sidebar-collection-header:hover .sidebar-collection-actions {
 	display: flex;
+	gap: 2px;
+	opacity: 0;
+	pointer-events: none;
+}
+.sidebar-collection-header:hover .sidebar-collection-actions,
+.sidebar-collection-header:focus-within .sidebar-collection-actions {
+	opacity: 1;
+	pointer-events: auto;
 }
 .disclosure {
 	width: 12px;
@@ -450,10 +454,13 @@ textarea:focus {
 	font-size: 13px;
 }
 .sidebar-request-delete {
-	display: none;
+	opacity: 0;
+	pointer-events: none;
 }
-.sidebar-request:hover .sidebar-request-delete {
-	display: inline-flex;
+.sidebar-request:hover .sidebar-request-delete,
+.sidebar-request:focus-within .sidebar-request-delete {
+	opacity: 1;
+	pointer-events: auto;
 }
 
 /* ---------- Request builder ---------- */
@@ -519,6 +526,17 @@ textarea:focus {
 	grid-template-columns: auto 1fr 1fr auto;
 	gap: 6px;
 	align-items: center;
+}
+.kv-row-secret {
+	grid-template-columns: auto 1fr 1fr auto auto;
+}
+.kv-secret-toggle {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	color: var(--color-muted);
+	font-size: 12px;
+	white-space: nowrap;
 }
 .kv-table {
 	width: 100%;

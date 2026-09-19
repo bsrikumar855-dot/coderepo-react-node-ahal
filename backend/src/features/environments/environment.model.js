@@ -5,6 +5,7 @@ const variableSchema = new mongoose.Schema(
 		key: { type: String, trim: true, required: true, maxlength: 120 },
 		value: { type: String, default: "" },
 		enabled: { type: Boolean, default: true },
+		secret: { type: Boolean, default: false },
 	},
 	{ _id: false },
 );

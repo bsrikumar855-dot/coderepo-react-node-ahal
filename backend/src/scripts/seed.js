@@ -59,7 +59,7 @@ async function seedEnvironment(account) {
 		variables: [
 			{ key: "baseUrl", value: baseUrl, enabled: true },
 			{ key: "ownerId", value: String(account._id), enabled: true },
-			{ key: "apiKey", value: "demo-key-123", enabled: true },
+			{ key: "apiKey", value: "demo-key-123", enabled: true, secret: true },
 		],
 	});
 	await environmentRepository.activate(environment._id, account._id);

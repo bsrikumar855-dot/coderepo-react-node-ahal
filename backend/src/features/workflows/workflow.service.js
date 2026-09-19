@@ -1,5 +1,6 @@
 import { AppError } from "../../shared/errors/app-error.js";
 import { getConfig } from "../../shared/config/index.js";
+import { extractSecretValues } from "../../shared/utils/variables.js";
 import { workflowRepository } from "./workflow.repository.js";
 import { requestRepository } from "../requests/request.repository.js";
 import { environmentService } from "../environments/environment.service.js";
@@ -70,13 +71,14 @@ export const workflowService = {
 		}
 
 		const config = getConfig();
-		const environmentVariables = await environmentService.resolveVariablesFor(ownerId, environmentId);
+		const resolvedEnvironment = await environmentService.resolveVariablesFor(ownerId, environmentId);
+		const secretValues = extractSecretValues(resolvedEnvironment.variables);
 
 		const run = await workflowRepository.createRun({
 			ownerId,
 			workflowId: workflow._id,
 			workflowNameSnapshot: workflow.name,
-			environmentId: environmentId || null,
+			environmentId: resolvedEnvironment.environmentId,
 			status: "running",
 			stepCount: workflow.steps.length,
 			startedAt: new Date(),
@@ -94,14 +96,15 @@ export const workflowService = {
 				source: "workflow-step",
 				requestId: requestDocs[index]._id,
 				requestSnapshot: { name: step.label || requestDocs[index].name, method: requestDocs[index].method, url: requestDocs[index].url },
-				environmentId,
+				environmentId: resolvedEnvironment.environmentId,
 				workflowRunId: run._id,
 				stepIndex: index,
 				result,
 				assertions: requestDocs[index].assertions,
+				secretValues,
 			});
 
-		const outcome = await runWorkflowSteps({ steps, environmentVariables, timeoutMs: config.requestExecutionTimeoutMs, onStepComplete });
+		const outcome = await runWorkflowSteps({ steps, environmentVariables: resolvedEnvironment.variables, timeoutMs: config.requestExecutionTimeoutMs, onStepComplete });
 
 		const finishedRun = await workflowRepository.updateRun(run._id, {
 			status: outcome.failedAtStep === null ? "succeeded" : "failed",

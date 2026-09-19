@@ -42,6 +42,12 @@ const executionSchema = new mongoose.Schema(
 		status: { type: Number, default: null },
 		statusText: { type: String, default: null },
 		resolvedUrl: { type: String, default: "" },
+		resolvedRequest: {
+			method: { type: String, default: "" },
+			url: { type: String, default: "" },
+			headers: { type: mongoose.Schema.Types.Mixed, default: {} },
+			body: { type: String, default: null },
+		},
 		responseHeaders: { type: mongoose.Schema.Types.Mixed, default: {} },
 		responseBody: { type: String, default: "" },
 		responseSize: { type: Number, default: 0 },

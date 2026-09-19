@@ -2,6 +2,7 @@ import { AppError } from "../../shared/errors/app-error.js";
 import { executionRepository } from "./execution.repository.js";
 import { evaluateAssertions } from "./assertion-evaluator.js";
 import { diagnoseExecution } from "./failure-diagnosis.js";
+import { sanitizeAssertionResults, sanitizeExecutionResult } from "./execution-sanitizer.js";
 
 export const executionService = {
 	/**
@@ -9,10 +10,18 @@ export const executionService = {
 	 * evaluate assertions against it, classify the outcome, then write one document.
 	 * Both the request-builder "Send" button and the workflow runner call this so every
 	 * execution - standalone or part of a run - is diagnosed and stored identically.
+	 *
+	 * Assertions and diagnosis are computed from the raw result (they need the real
+	 * response to be correct). `secretValues` - the live values of any secret-flagged
+	 * environment variables used to build this request - are then redacted from
+	 * everything that gets persisted or returned, via the one explicit sanitizer step
+	 * in execution-sanitizer.js.
 	 */
-	async recordExecution(ownerId, { source, requestId, requestSnapshot, environmentId, workflowRunId, stepIndex, result, assertions }) {
+	async recordExecution(ownerId, { source, requestId, requestSnapshot, environmentId, workflowRunId, stepIndex, result, assertions, secretValues = [] }) {
 		const assertionOutcome = evaluateAssertions(assertions, result);
 		const diagnosis = diagnoseExecution(result, assertionOutcome);
+		const sanitizedResult = sanitizeExecutionResult(result, secretValues);
+		const sanitizedAssertionResults = sanitizeAssertionResults(assertionOutcome.results, secretValues);
 
 		const document = await executionRepository.create({
 			ownerId,
@@ -22,17 +31,18 @@ export const executionService = {
 			environmentId: environmentId || null,
 			workflowRunId: workflowRunId || null,
 			stepIndex: stepIndex ?? null,
-			success: result.success,
-			status: result.status,
-			statusText: result.statusText,
-			resolvedUrl: result.resolvedUrl,
-			responseHeaders: result.responseHeaders,
-			responseBody: result.responseBody,
-			responseSize: result.responseSize,
-			durationMs: result.durationMs,
-			errorMessage: result.errorMessage,
-			unresolvedVariables: result.unresolvedVariables,
-			assertionResults: assertionOutcome.results,
+			success: sanitizedResult.success,
+			status: sanitizedResult.status,
+			statusText: sanitizedResult.statusText,
+			resolvedUrl: sanitizedResult.resolvedUrl,
+			resolvedRequest: sanitizedResult.resolvedRequest || undefined,
+			responseHeaders: sanitizedResult.responseHeaders,
+			responseBody: sanitizedResult.responseBody,
+			responseSize: sanitizedResult.responseSize,
+			durationMs: sanitizedResult.durationMs,
+			errorMessage: sanitizedResult.errorMessage,
+			unresolvedVariables: sanitizedResult.unresolvedVariables,
+			assertionResults: sanitizedAssertionResults,
 			assertionsPassed: assertionOutcome.allPassed,
 			diagnosis,
 		});

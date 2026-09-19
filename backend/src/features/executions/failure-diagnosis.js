@@ -62,14 +62,26 @@ export function diagnoseExecution(result, assertionOutcome) {
 		};
 	}
 
+	if (result.status === 401 || result.status === 403) {
+		return {
+			code: "AUTH_ERROR",
+			title: `Target rejected the request's credentials (${result.status})`,
+			summary: "The target considered this request unauthenticated or unauthorized.",
+			suggestions: [
+				"Check the request's auth configuration (bearer token, basic credentials, or API key) against what the target expects.",
+				"Confirm the {{variable}} an auth field depends on resolved to the right value, not a stale or empty one.",
+			],
+		};
+	}
+
 	if (result.status >= 400) {
 		return {
 			code: "CLIENT_ERROR",
 			title: `Target rejected the request (${result.status})`,
-			summary: "The target considered this request invalid, unauthenticated, or unauthorized.",
+			summary: "The target considered this request invalid.",
 			suggestions: [
-				"Check the request's auth configuration against what the target expects.",
-				"Compare the request body and headers with the target's documented contract.",
+				"Compare the request body, params, and headers with the target's documented contract.",
+				"Check for a required field that was left empty after variable resolution.",
 			],
 		};
 	}

@@ -93,8 +93,8 @@ export function EnvironmentsPanel({ environments, onChanged }) {
 								Delete
 							</button>
 						</div>
-						<KeyValueEditor rows={form.variables} onChange={(variables) => { setForm({ ...form, variables }); setDirty(true); }} keyPlaceholder="VARIABLE_NAME" valuePlaceholder="value" />
-						<p className="muted">Use these as {"{{variableName}}"} inside any request URL, header, param, body, or auth field.</p>
+						<KeyValueEditor rows={form.variables} onChange={(variables) => { setForm({ ...form, variables }); setDirty(true); }} keyPlaceholder="VARIABLE_NAME" valuePlaceholder="value" secretToggle />
+						<p className="muted">Use these as {"{{variableName}}"} inside any request URL, header, param, body, or auth field. Mark a variable "Secret" to mask it wherever it is displayed or stored - in this editor after saving, and in every execution record that resolves it.</p>
 					</>
 				) : (
 					<div className="workspace-placeholder">

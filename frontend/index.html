@@ -1,9 +1,15 @@
 <!doctype html>
 <html lang="en">
 	<head>
+		<!-- Applied before first paint so a dark-theme reload never flashes light first. Mirrors the reference repo's inline theme script; keep the storage key in sync with shared/utils/theme.js. -->
+		<script>
+			document.documentElement.dataset.theme = localStorage.getItem("ahal-theme") === "dark" ? "dark" : "light";
+		</script>
 		<meta charset="UTF-8" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta name="theme-color" content="#12141c" media="(prefers-color-scheme: dark)" />
+		<meta name="theme-color" content="#eef0f7" media="(prefers-color-scheme: light)" />
 		<meta name="description" content="Ahal - the API reliability workbench: build requests, chain them into workflows, and diagnose failures." />
 		<title>Ahal - API Reliability Workbench</title>
 	</head>

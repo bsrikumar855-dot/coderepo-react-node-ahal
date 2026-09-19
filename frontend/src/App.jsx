@@ -7,6 +7,7 @@ import { WorkflowsPanel } from "./features/workflows/WorkflowsPanel.jsx";
 import { HistoryPanel } from "./features/executions/HistoryPanel.jsx";
 import { environmentsApi } from "./features/environments/environments.api.js";
 import { hasSessionToken, setSessionToken } from "./shared/api/client.js";
+import { applyTheme, readTheme } from "./shared/utils/theme.js";
 
 const TABS = [
 	{ id: "workspace", label: "Workspace" },
@@ -20,6 +21,24 @@ function BootScreen() {
 		<main className="app-boot" role="status" aria-label="Loading Ahal">
 			<div className="spinner" />
 		</main>
+	);
+}
+
+const THEME_OPTIONS = [
+	{ value: "light", label: "Light" },
+	{ value: "dark", label: "Dark" },
+];
+
+function ThemeToggle() {
+	const [theme, setTheme] = useState(readTheme);
+	return (
+		<div className="theme-toggle" role="group" aria-label="Appearance">
+			{THEME_OPTIONS.map((option) => (
+				<button key={option.value} type="button" aria-pressed={theme === option.value} onClick={() => setTheme(applyTheme(option.value))}>
+					{option.label}
+				</button>
+			))}
+		</div>
 	);
 }
 
@@ -53,6 +72,7 @@ function AppShell({ account, onLogout }) {
 					))}
 				</nav>
 				<div className="app-header-right">
+					<ThemeToggle />
 					<span className="muted">{account.email}</span>
 					<button className="btn btn-ghost btn-small" onClick={onLogout}>
 						Sign out

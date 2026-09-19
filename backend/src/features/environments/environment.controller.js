@@ -10,12 +10,12 @@ const variableSchema = z.object({
 
 const createSchema = z.object({
 	name: z.string().trim().min(1).max(120),
-	variables: z.array(variableSchema).default([]),
+	variables: z.array(variableSchema).max(200).default([]),
 });
 
 const updateSchema = z.object({
 	name: z.string().trim().min(1).max(120).optional(),
-	variables: z.array(variableSchema).optional(),
+	variables: z.array(variableSchema).max(200).optional(),
 });
 
 /**

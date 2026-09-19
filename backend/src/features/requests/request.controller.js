@@ -29,13 +29,13 @@ const baseFields = {
 	name: z.string().trim().min(1).max(120),
 	method: z.enum(["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"]).default("GET"),
 	url: z.string().trim().min(1).max(2000),
-	params: z.array(keyValueSchema).default([]),
-	headers: z.array(keyValueSchema).default([]),
+	params: z.array(keyValueSchema).max(100).default([]),
+	headers: z.array(keyValueSchema).max(100).default([]),
 	bodyType: z.enum(["none", "json", "text", "form-urlencoded"]).default("none"),
 	bodyContent: z.string().max(50_000).default(""),
 	auth: authSchema.default({}),
-	tags: z.array(z.string().trim().max(40)).default([]),
-	assertions: z.array(assertionSchema).default([]),
+	tags: z.array(z.string().trim().max(40)).max(25).default([]),
+	assertions: z.array(assertionSchema).max(50).default([]),
 };
 
 const createSchema = z.object({

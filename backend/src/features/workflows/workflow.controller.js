@@ -11,6 +11,7 @@ const stepSchema = z.object({
 				path: z.string().trim().min(1).max(200),
 			}),
 		)
+		.max(25)
 		.default([]),
 	continueOnFailure: z.boolean().default(false),
 });
@@ -19,7 +20,7 @@ const createSchema = z.object({
 	name: z.string().trim().min(1).max(120),
 	description: z.string().trim().max(500).default(""),
 	collectionId: z.string().trim().min(1).nullable().optional(),
-	steps: z.array(stepSchema).default([]),
+	steps: z.array(stepSchema).max(50).default([]),
 });
 
 const updateSchema = createSchema.partial();

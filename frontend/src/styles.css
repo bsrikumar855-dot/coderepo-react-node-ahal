@@ -940,4 +940,32 @@ textarea:focus {
 		font-size: 14px;
 		white-space: nowrap;
 	}
+	/*
+	 * .request-line (method + URL + environment + Save/Send) has no flex-wrap at
+	 * all: on a 375px phone the fixed-width children alone (method select 110px +
+	 * env-select 150px + two buttons ~120px) already exceed the viewport, so the
+	 * URL input got squeezed to ~20px and the Send button rendered off-screen
+	 * with no scrollbar to reach it - not just tight, genuinely unreachable.
+	 * Wrapping puts the URL field on its own full-width line and everything else
+	 * on a second line below it.
+	 */
+	.request-line {
+		flex-wrap: wrap;
+	}
+	.url-input {
+		flex: 1 1 100%;
+		order: -1;
+	}
+	/*
+	 * .environments-editor-header (name + Set active/Save/Delete) doesn't overflow
+	 * at 375px, but the name input - the field being edited - was squeezed to
+	 * ~89px (about 9 characters visible) to make room for three buttons on the
+	 * same line. Same fix: name field gets its own line.
+	 */
+	.environments-editor-header {
+		flex-wrap: wrap;
+	}
+	.environments-editor-header input {
+		flex: 1 1 100%;
+	}
 }

@@ -21,7 +21,7 @@ const mockOrderSchema = new mongoose.Schema(
 		item: { type: String, required: true, trim: true, maxlength: 160 },
 		quantity: { type: Number, required: true, min: 1, max: 1000 },
 		unitPriceCents: { type: Number, required: true, min: 0 },
-		status: { type: String, enum: ["pending", "confirmed", "cancelled"], default: "pending" },
+		status: { type: String, enum: ["pending", "confirmed", "canceled"], default: "pending" },
 	},
 	{ timestamps: true },
 );

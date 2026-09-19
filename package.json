@@ -3,7 +3,10 @@
 	"version": "1.0.0",
 	"private": true,
 	"description": "Ahal - API Reliability Workbench",
-	"workspaces": ["frontend", "backend"],
+	"workspaces": [
+		"frontend",
+		"backend"
+	],
 	"scripts": {
 		"prestart": "bash setup.sh --start",
 		"start": "concurrently \"bun run dev:backend\" \"bun run dev:frontend\"",
